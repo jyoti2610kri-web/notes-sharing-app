@@ -1,0 +1,13 @@
+target/
+*.jar
+.git/
+.gitignore
+Dockerfile
+data/
+uploads/
+.mvn/
+mvnw
+mvnw.cmd
+.idea/
+.vscode/
+.DS_Store

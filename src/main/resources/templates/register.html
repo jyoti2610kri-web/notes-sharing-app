@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: header('Register')}"></head>
+<body class="bg-light">
+    <div class="container content-wrapper">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-5">
+                <div class="card shadow">
+                    <div class="card-body p-5 text-center">
+                        <i class="bi bi-person-plus-fill text-primary display-4 mb-4"></i>
+                        <h2 class="card-title mb-4">Create Account</h2>
+                        
+                        <div th:if="${error}" class="alert alert-danger mb-4" th:text="${error}">Error</div>
+                        
+                        <form th:action="@{/register}" method="post">
+                            <div class="mb-3 text-start">
+                                <label for="name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required placeholder="Enter your full name">
+                            </div>
+                            <div class="mb-3 text-start">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" required placeholder="Enter your email">
+                            </div>
+                            <div class="mb-3 text-start">
+                                <label for="university" class="form-label">University Name</label>
+                                <input type="text" class="form-control" id="university" name="university" required placeholder="Enter your university name">
+                            </div>
+                            <div class="mb-4 text-start">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required placeholder="Create a password">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mb-3">Register</button>
+                            <p class="mb-0">Already have an account? <a th:href="@{/login}" class="text-decoration-none">Login here</a></p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
