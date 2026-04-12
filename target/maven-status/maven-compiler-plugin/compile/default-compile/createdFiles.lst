@@ -1,8 +1,0 @@
-com\notesharing\repository\NoteRepository.class
-com\notesharing\service\CloudinaryService.class
-com\notesharing\controller\NoteController.class
-com\notesharing\model\Note.class
-com\notesharing\NoteSharingApplication.class
-com\notesharing\model\User.class
-com\notesharing\repository\UserRepository.class
-com\notesharing\controller\AuthController.class
