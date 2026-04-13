@@ -13,5 +13,12 @@ COPY --from=build /app/target/*.jar app.jar
 # Expose the port (Render uses PORT env var)
 EXPOSE 8080
 
+# Define environment variables placeholders for Spring Boot to pick up
+ENV PORT=8080
+ENV SPRING_DATASOURCE_URL=""
+ENV SPRING_DATASOURCE_USERNAME=""
+ENV SPRING_DATASOURCE_PASSWORD=""
+ENV CLOUDINARY_URL=""
+
 # Run the application
 ENTRYPOINT ["java", "-Xmx512m", "-jar", "app.jar"]
