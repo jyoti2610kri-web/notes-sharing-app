@@ -8,7 +8,7 @@ RUN mvn clean package -DskipTests
 # Run Stage
 FROM openjdk:17-jdk-slim
 WORKDIR /app
-COPY --from build /app/target/*.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 # Expose the port (Render uses PORT env var)
 EXPOSE 8080
