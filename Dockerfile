@@ -13,5 +13,5 @@ COPY --from=build /app/target/*.jar app.jar
 # Render uses the PORT environment variable
 EXPOSE 8080
 
-# This command FORCES the app to read the Render variables
-ENTRYPOINT ["java", "-Xmx512m", "-Dserver.port=${PORT}", "-Dspring.datasource.url=${SPRING_DATASOURCE_URL}", "-Dspring.datasource.username=${SPRING_DATASOURCE_USERNAME}", "-Dspring.datasource.password=${SPRING_DATASOURCE_PASSWORD}", "-Dcloudinary.url=${CLOUDINARY_URL}", "-jar", "app.jar"]
+# This command is more robust for Docker/Render environments
+ENTRYPOINT ["java", "-Xmx512m", "-jar", "app.jar"]
