@@ -10,15 +10,8 @@ FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose the port (Render uses PORT env var)
+# Expose the port
 EXPOSE 8080
 
-# Define environment variables placeholders for Spring Boot to pick up
-ENV PORT=8080
-ENV SPRING_DATASOURCE_URL=""
-ENV SPRING_DATASOURCE_USERNAME=""
-ENV SPRING_DATASOURCE_PASSWORD=""
-ENV CLOUDINARY_URL=""
-
-# Run the application
+# Run the application (Exec form is best for Render)
 ENTRYPOINT ["java", "-Xmx512m", "-jar", "app.jar"]
