@@ -10,8 +10,8 @@ FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose the port
+# Render uses the PORT environment variable
 EXPOSE 8080
 
-# Run the application (Exec form is best for Render)
+# The exec form is necessary for environment variables to be passed correctly
 ENTRYPOINT ["java", "-Xmx512m", "-jar", "app.jar"]
