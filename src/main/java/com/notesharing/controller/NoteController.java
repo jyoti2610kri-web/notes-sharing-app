@@ -148,16 +148,14 @@ public class NoteController {
         Note note = noteRepository.findById(id).orElse(null);
         if (note == null) return "redirect:/search";
         
-        // Cloudinary handles delivery. We can redirect to the secure URL.
-        // For forced download, Cloudinary usually needs flags, but secure_url is enough for now.
-        return "redirect:" + note.getFilename();
+        return "redirect:" + cloudinaryService.getDownloadUrl(note.getFilename());
     }
 
     @GetMapping("/view/{id}")
     public String viewFile(@PathVariable String id) {
         Note note = noteRepository.findById(id).orElse(null);
         if (note == null) return "redirect:/search";
-        return "redirect:" + note.getFilename();
+        return "redirect:" + cloudinaryService.getViewUrl(note.getFilename());
     }
 
     @GetMapping("/view-note/{id}")
@@ -169,6 +167,7 @@ public class NoteController {
         if (note == null) return "redirect:/search";
 
         model.addAttribute("note", note);
+        model.addAttribute("viewUrl", cloudinaryService.getViewUrl(note.getFilename()));
         model.addAttribute("isPdf", note.getFilename().toLowerCase().contains(".pdf"));
         return "view-note";
     }
