@@ -32,28 +32,36 @@ public class CloudinaryService {
     }
 
     public String getDownloadUrl(String url) {
+        System.out.println("Generating download URL for: " + url);
         if (url == null || url.isEmpty()) return url;
         
         String publicId = extractPublicId(url);
         String resourceType = extractResourceType(url);
+        System.out.println("Extracted PublicId: " + publicId + ", ResourceType: " + resourceType);
         
-        return cloudinary.url()
+        String generatedUrl = cloudinary.url()
                 .resourceType(resourceType)
                 .signed(true)
                 .transformation(new Transformation().flags("attachment"))
                 .generate(publicId);
+        System.out.println("Generated URL: " + generatedUrl);
+        return generatedUrl;
     }
 
     public String getViewUrl(String url) {
+        System.out.println("Generating view URL for: " + url);
         if (url == null || url.isEmpty()) return url;
         
         String publicId = extractPublicId(url);
         String resourceType = extractResourceType(url);
+        System.out.println("Extracted PublicId: " + publicId + ", ResourceType: " + resourceType);
         
-        return cloudinary.url()
+        String generatedUrl = cloudinary.url()
                 .resourceType(resourceType)
                 .signed(true)
                 .generate(publicId);
+        System.out.println("Generated URL: " + generatedUrl);
+        return generatedUrl;
     }
     
     public void deleteFile(String url) {
@@ -77,11 +85,13 @@ public class CloudinaryService {
             
             // Check if there's a version number like v12345/
             // Versions are digits after 'v'
-            if (url.charAt(startIdx) == 'v') {
+            if (startIdx < url.length() && url.charAt(startIdx) == 'v') {
                 int nextSlash = url.indexOf("/", startIdx);
-                String potentialVersion = url.substring(startIdx + 1, nextSlash);
-                if (potentialVersion.matches("\\d+")) {
-                    startIdx = nextSlash + 1;
+                if (nextSlash != -1) {
+                    String potentialVersion = url.substring(startIdx + 1, nextSlash);
+                    if (potentialVersion.matches("\\d+")) {
+                        startIdx = nextSlash + 1;
+                    }
                 }
             }
             
@@ -91,6 +101,7 @@ public class CloudinaryService {
             }
             return url.substring(startIdx);
         } catch (Exception e) {
+            System.err.println("Error extracting public ID: " + e.getMessage());
             // Fallback to basic logic if something goes wrong
             int lastSlash = url.lastIndexOf("/");
             int lastDot = url.lastIndexOf(".");
