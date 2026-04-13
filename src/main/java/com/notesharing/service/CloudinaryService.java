@@ -41,7 +41,6 @@ public class CloudinaryService {
         
         String generatedUrl = cloudinary.url()
                 .resourceType(resourceType)
-                .signed(true)
                 .transformation(new Transformation().flags("attachment"))
                 .generate(publicId);
         System.out.println("Generated URL: " + generatedUrl);
@@ -58,7 +57,6 @@ public class CloudinaryService {
         
         String generatedUrl = cloudinary.url()
                 .resourceType(resourceType)
-                .signed(true)
                 .generate(publicId);
         System.out.println("Generated URL: " + generatedUrl);
         return generatedUrl;
