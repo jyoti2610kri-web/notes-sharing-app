@@ -27,12 +27,12 @@
             <div class="card-body p-0">
                 <!-- PDF Viewer (Cloudinary PDF URL can be displayed in iframe) -->
                 <div th:if="${isPdf}" class="ratio ratio-16x9" style="min-height: 80vh;">
-                    <iframe th:src="${note.filename}" title="PDF Viewer" allowfullscreen></iframe>
+                    <iframe th:src="${viewUrl}" title="PDF Viewer" allowfullscreen></iframe>
                 </div>
                 
                 <!-- Image Viewer -->
                 <div th:if="${!isPdf}" class="text-center p-3">
-                    <img th:src="${note.filename}" class="img-fluid rounded shadow-sm" alt="Note Image">
+                    <img th:src="${viewUrl}" class="img-fluid rounded shadow-sm" alt="Note Image">
                 </div>
             </div>
             <div class="card-footer bg-light">
