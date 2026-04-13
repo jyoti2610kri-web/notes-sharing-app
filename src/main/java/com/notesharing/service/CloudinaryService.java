@@ -111,8 +111,13 @@ public class CloudinaryService {
     }
 
     private String extractResourceType(String url) {
-        if (url.contains("/raw/")) return "raw";
-        if (url.contains("/video/")) return "video";
-        return "image"; // Default
+        String lowerUrl = url.toLowerCase();
+        if (lowerUrl.contains("/raw/")) return "raw";
+        if (lowerUrl.contains("/video/")) return "video";
+        // If the URL ends in .pdf or contains /pdf/, Cloudinary often treats it as 'image' 
+        // for processing, but if it was a raw upload, it stays 'raw'.
+        if (lowerUrl.endsWith(".pdf") && !lowerUrl.contains("/image/")) return "raw";
+        
+        return "image"; // Default for most images and processed PDFs
     }
 }
