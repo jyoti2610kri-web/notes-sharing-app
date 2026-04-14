@@ -11,9 +11,13 @@ public class Note {
     private String id;
     private String title;
     private String description;
-    private String filename; // This will store the secure URL
-    private String publicId;
-    private String resourceType;
+    
+    @Column(length = 2048)
+    private String filename; // Stores the URL
+    
+    private String publicId; // For Cloudinary
+    private String resourceType; // For Cloudinary
+    
     private String userId;
     private String userName;
     private String category;

@@ -174,7 +174,7 @@ public class NoteController {
         model.addAttribute("note", note);
         model.addAttribute("viewUrl", cloudinaryService.getViewUrl(note.getPublicId(), note.getResourceType()));
         
-        // Better PDF detection: check resource type or filename
+        // Simple PDF detection based on resourceType or file extension
         boolean isPdf = "raw".equals(note.getResourceType()) || 
                        (note.getFilename() != null && note.getFilename().toLowerCase().contains(".pdf"));
                        

@@ -21,6 +21,7 @@ public class CloudinaryService {
 
     public Map uploadFile(MultipartFile file) {
         try {
+            // Upload as 'auto' which handles images/raw (PDFs) appropriately
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
                     "resource_type", "auto",
                     "access_mode", "public"
@@ -34,6 +35,7 @@ public class CloudinaryService {
     public String getDownloadUrl(String publicId, String resourceType) {
         if (publicId == null || publicId.isEmpty()) return "";
         
+        // For downloads, we apply the attachment flag
         return cloudinary.url()
                 .resourceType(resourceType != null ? resourceType : "image")
                 .transformation(new Transformation().flags("attachment"))
@@ -43,6 +45,7 @@ public class CloudinaryService {
     public String getViewUrl(String publicId, String resourceType) {
         if (publicId == null || publicId.isEmpty()) return "";
         
+        // If it's a raw file (PDF), we need to ensure the URL is clean for the browser to open
         return cloudinary.url()
                 .resourceType(resourceType != null ? resourceType : "image")
                 .generate(publicId);
