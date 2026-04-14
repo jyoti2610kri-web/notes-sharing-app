@@ -16,53 +16,45 @@ public class CloudinaryService {
     private final Cloudinary cloudinary;
 
     public CloudinaryService(@Value("${cloudinary.url}") String cloudinaryUrl) {
+        // Automatically clean the URL of any accidental brackets or whitespace
         String cleanUrl = cloudinaryUrl.replace("<", "").replace(">", "").trim();
         this.cloudinary = new Cloudinary(cleanUrl);
     }
 
-    public Map uploadFile(MultipartFile file) {
-        try {
-            // Determine resource type: PDFs should be 'image' in Cloudinary to allow for previewing/thumbnails
-            // or 'raw' if you just want the file. 'auto' usually works best.
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                    "resource_type", "auto", 
-                    "flags", "attachment"
-            ));
-            return uploadResult;
-        } catch (IOException e) {
-            throw new RuntimeException("Cloudinary upload failed: " + e.getMessage(), e);
-        }
+    /**
+     * Uploads any file type (Image or PDF) to Cloudinary.
+     * Uses resource_type: "auto" for dynamic handling.
+     */
+    public Map uploadFile(MultipartFile file) throws IOException {
+        return cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "resource_type", "auto"
+        ));
     }
 
-    public String getDownloadUrl(String publicId, String resourceType, String format) {
-        if (publicId == null || publicId.isEmpty()) return "";
-        
-        // Use the explicit resource type returned by Cloudinary (important for PDFs)
+    /**
+     * Generates a secure URL for viewing.
+     */
+    public String getViewUrl(String publicId, String resourceType, String format) {
         return cloudinary.url()
-                .resourceType(resourceType != null ? resourceType : "auto")
+                .resourceType(resourceType)
                 .secure(true)
-                .format(format != null ? format : "")
+                .format(format)
+                .generate(publicId);
+    }
+
+    /**
+     * Generates a secure URL with the attachment flag for forced download.
+     */
+    public String getDownloadUrl(String publicId, String resourceType, String format) {
+        return cloudinary.url()
+                .resourceType(resourceType)
+                .secure(true)
+                .format(format)
                 .transformation(new Transformation().flags("attachment"))
                 .generate(publicId);
     }
 
-    public String getViewUrl(String publicId, String resourceType, String format) {
-        if (publicId == null || publicId.isEmpty()) return "";
-        
-        return cloudinary.url()
-                .resourceType(resourceType != null ? resourceType : "auto")
-                .secure(true)
-                .format(format != null ? format : "")
-                .generate(publicId);
-    }
-    
-    public void deleteFile(String publicId, String resourceType) {
-        try {
-            if (publicId != null && !publicId.isEmpty()) {
-                cloudinary.uploader().destroy(publicId, ObjectUtils.asMap("resource_type", resourceType != null ? resourceType : "image"));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void deleteFile(String publicId, String resourceType) throws IOException {
+        cloudinary.uploader().destroy(publicId, ObjectUtils.asMap("resource_type", resourceType));
     }
 }

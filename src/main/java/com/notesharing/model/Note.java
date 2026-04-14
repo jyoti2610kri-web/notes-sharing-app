@@ -13,11 +13,11 @@ public class Note {
     private String description;
     
     @Column(length = 2048)
-    private String filename; // Stores the secure URL
+    private String filename; // Stores the Cloudinary secure_url
     
-    private String publicId;
-    private String resourceType;
-    private String format; // NEW: stores file extension (pdf, jpg, etc)
+    private String publicId; // Unique Cloudinary ID
+    private String resourceType; // image, raw, video, etc.
+    private String format; // pdf, jpg, png, etc.
     
     private String userId;
     private String userName;
@@ -42,6 +42,7 @@ public class Note {
         this.uploadDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 
+    // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getTitle() { return title; }
