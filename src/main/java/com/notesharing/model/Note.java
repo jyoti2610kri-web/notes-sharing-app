@@ -11,7 +11,9 @@ public class Note {
     private String id;
     private String title;
     private String description;
-    private String filename;
+    private String filename; // This will store the secure URL
+    private String publicId;
+    private String resourceType;
     private String userId;
     private String userName;
     private String category;
@@ -20,11 +22,13 @@ public class Note {
 
     public Note() {}
 
-    public Note(String id, String title, String description, String filename, String userId, String userName, String category, String university) {
+    public Note(String id, String title, String description, String filename, String publicId, String resourceType, String userId, String userName, String category, String university) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.filename = filename;
+        this.publicId = publicId;
+        this.resourceType = resourceType;
         this.userId = userId;
         this.userName = userName;
         this.category = category;
@@ -40,6 +44,10 @@ public class Note {
     public void setDescription(String description) { this.description = description; }
     public String getFilename() { return filename; }
     public void setFilename(String filename) { this.filename = filename; }
+    public String getPublicId() { return publicId; }
+    public void setPublicId(String publicId) { this.publicId = publicId; }
+    public String getResourceType() { return resourceType; }
+    public void setResourceType(String resourceType) { this.resourceType = resourceType; }
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
     public String getUserName() { return userName; }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -57,9 +58,13 @@ public class NoteController {
         User user = (User) session.getAttribute("user");
         if (user == null) return "redirect:/login";
 
-        String fileUrl = cloudinaryService.uploadFile(file);
+        Map uploadResult = cloudinaryService.uploadFile(file);
+        String fileUrl = (String) uploadResult.get("secure_url");
+        String publicId = (String) uploadResult.get("public_id");
+        String resourceType = (String) uploadResult.get("resource_type");
+
         Note note = new Note(UUID.randomUUID().toString(), title, description, fileUrl, 
-                             user.getId(), user.getName(), category, user.getUniversity());
+                             publicId, resourceType, user.getId(), user.getName(), category, user.getUniversity());
         noteRepository.save(note);
         return "redirect:/dashboard";
     }
@@ -148,14 +153,14 @@ public class NoteController {
         Note note = noteRepository.findById(id).orElse(null);
         if (note == null) return "redirect:/search";
         
-        return "redirect:" + cloudinaryService.getDownloadUrl(note.getFilename());
+        return "redirect:" + cloudinaryService.getDownloadUrl(note.getPublicId(), note.getResourceType());
     }
 
     @GetMapping("/view/{id}")
     public String viewFile(@PathVariable String id) {
         Note note = noteRepository.findById(id).orElse(null);
         if (note == null) return "redirect:/search";
-        return "redirect:" + cloudinaryService.getViewUrl(note.getFilename());
+        return "redirect:" + cloudinaryService.getViewUrl(note.getPublicId(), note.getResourceType());
     }
 
     @GetMapping("/view-note/{id}")
@@ -167,8 +172,13 @@ public class NoteController {
         if (note == null) return "redirect:/search";
 
         model.addAttribute("note", note);
-        model.addAttribute("viewUrl", cloudinaryService.getViewUrl(note.getFilename()));
-        model.addAttribute("isPdf", note.getFilename().toLowerCase().contains(".pdf"));
+        model.addAttribute("viewUrl", cloudinaryService.getViewUrl(note.getPublicId(), note.getResourceType()));
+        
+        // Better PDF detection: check resource type or filename
+        boolean isPdf = "raw".equals(note.getResourceType()) || 
+                       (note.getFilename() != null && note.getFilename().toLowerCase().contains(".pdf"));
+                       
+        model.addAttribute("isPdf", isPdf);
         return "view-note";
     }
 
@@ -182,7 +192,7 @@ public class NoteController {
                 .orElse(null);
 
         if (note != null) {
-            cloudinaryService.deleteFile(note.getFilename());
+            cloudinaryService.deleteFile(note.getPublicId(), note.getResourceType());
             noteRepository.deleteById(id);
         }
         return "redirect:/dashboard";
