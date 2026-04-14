@@ -22,9 +22,11 @@ public class CloudinaryService {
 
     public Map uploadFile(MultipartFile file) {
         try {
+            // Determine resource type: PDFs should be 'image' in Cloudinary to allow for previewing/thumbnails
+            // or 'raw' if you just want the file. 'auto' usually works best.
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
-                    "resource_type", "auto",
-                    "access_mode", "public"
+                    "resource_type", "auto", 
+                    "flags", "attachment"
             ));
             return uploadResult;
         } catch (IOException e) {
@@ -35,6 +37,7 @@ public class CloudinaryService {
     public String getDownloadUrl(String publicId, String resourceType, String format) {
         if (publicId == null || publicId.isEmpty()) return "";
         
+        // Use the explicit resource type returned by Cloudinary (important for PDFs)
         return cloudinary.url()
                 .resourceType(resourceType != null ? resourceType : "auto")
                 .secure(true)

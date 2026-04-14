@@ -53,20 +53,30 @@ public class NoteController {
 
     @PostMapping("/upload")
     public String processUpload(@RequestParam String title, @RequestParam String description, 
-                                @RequestParam String category, @RequestParam MultipartFile file, 
+                                @RequestParam String category, @RequestParam List<MultipartFile> files, 
                                 HttpSession session) {
         User user = (User) session.getAttribute("user");
         if (user == null) return "redirect:/login";
 
-        Map uploadResult = cloudinaryService.uploadFile(file);
-        String fileUrl = (String) uploadResult.get("secure_url");
-        String publicId = (String) uploadResult.get("public_id");
-        String resourceType = (String) uploadResult.get("resource_type");
-        String format = (String) uploadResult.get("format");
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+            
+            Map uploadResult = cloudinaryService.uploadFile(file);
+            String fileUrl = (String) uploadResult.get("secure_url");
+            String publicId = (String) uploadResult.get("public_id");
+            String resourceType = (String) uploadResult.get("resource_type");
+            String format = (String) uploadResult.get("format");
+            
+            // If it's a multi-upload, append part numbers to the title
+            String finalTitle = title;
+            if (files.size() > 1) {
+                finalTitle = title + " (Part " + (files.indexOf(file) + 1) + ")";
+            }
 
-        Note note = new Note(UUID.randomUUID().toString(), title, description, fileUrl, 
-                             publicId, resourceType, format, user.getId(), user.getName(), category, user.getUniversity());
-        noteRepository.save(note);
+            Note note = new Note(UUID.randomUUID().toString(), finalTitle, description, fileUrl, 
+                                 publicId, resourceType, format, user.getId(), user.getName(), category, user.getUniversity());
+            noteRepository.save(note);
+        }
         return "redirect:/dashboard";
     }
 
