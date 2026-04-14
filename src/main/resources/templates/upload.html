@@ -33,9 +33,9 @@
                                 <textarea class="form-control" id="description" name="description" rows="3" placeholder="Briefly describe what's in the note..."></textarea>
                             </div>
                             <div class="mb-4">
-                                <label for="files" class="form-label">Select Files (PDF, Images)</label>
-                                <input class="form-control" type="file" id="files" name="files" multiple required>
-                                <div class="form-text text-muted">You can select more than one file at a time. Each file will be uploaded as a separate note with the same title and category.</div>
+                                <label for="files" class="form-label">Select Images (Pages of your Note)</label>
+                                <input class="form-control" type="file" id="files" name="files" multiple required accept="image/*">
+                                <div class="form-text text-muted">Select all images that make up your note. They will be bundled into a single PDF for others to download.</div>
                             </div>
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Publish Note</button>

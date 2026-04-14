@@ -8,10 +8,22 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Image;
+
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -50,21 +62,30 @@ public class NoteController {
         User user = (User) session.getAttribute("user");
         if (user == null) return "redirect:/login";
 
+        List<String> imageUrls = new ArrayList<>();
+        List<String> publicIds = new ArrayList<>();
+
         for (MultipartFile file : files) {
             if (file.isEmpty()) continue;
             
-            // Cloudinary Upload Logic
-            Map result = cloudinaryService.uploadFile(file);
+            // Only allow images
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                continue;
+            }
             
-            // Store results in the database
+            Map result = cloudinaryService.uploadImage(file);
+            imageUrls.add((String) result.get("secure_url"));
+            publicIds.add((String) result.get("public_id"));
+        }
+
+        if (!imageUrls.isEmpty()) {
             Note note = new Note(
                 UUID.randomUUID().toString(),
-                files.size() > 1 ? title + " (Part " + (files.indexOf(file) + 1) + ")" : title,
+                title,
                 description,
-                (String) result.get("secure_url"),
-                (String) result.get("public_id"),
-                (String) result.get("resource_type"),
-                (String) result.get("format"),
+                imageUrls,
+                publicIds,
                 user.getId(),
                 user.getName(),
                 category,
@@ -72,23 +93,10 @@ public class NoteController {
             );
             noteRepository.save(note);
         }
+        
         return "redirect:/dashboard";
     }
 
-    /**
-     * Download Link Generation
-     */
-    @GetMapping("/download/{id}")
-    public String downloadFile(@PathVariable String id) {
-        Note note = noteRepository.findById(id).orElse(null);
-        if (note == null) return "redirect:/dashboard";
-        
-        return "redirect:" + cloudinaryService.getDownloadUrl(note.getPublicId(), note.getResourceType(), note.getFormat());
-    }
-
-    /**
-     * View Note Page
-     */
     @GetMapping("/view-note/{id}")
     public String viewNotePage(@PathVariable String id, HttpSession session, Model model) {
         if (session.getAttribute("user") == null) return "redirect:/login";
@@ -97,9 +105,66 @@ public class NoteController {
         if (note == null) return "redirect:/dashboard";
 
         model.addAttribute("note", note);
-        model.addAttribute("viewUrl", cloudinaryService.getViewUrl(note.getPublicId(), note.getResourceType(), note.getFormat()));
-        model.addAttribute("isPdf", "pdf".equalsIgnoreCase(note.getFormat()));
         return "view-note";
+    }
+
+    @GetMapping("/download/{id}")
+    public ResponseEntity<byte[]> downloadNote(@PathVariable String id, HttpSession session) {
+        if (session.getAttribute("user") == null) {
+            return ResponseEntity.status(403).build();
+        }
+
+        Note note = noteRepository.findById(id).orElse(null);
+        if (note == null || note.getImageUrls().isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            PdfWriter writer = new PdfWriter(baos);
+            PdfDocument pdf = new PdfDocument(writer);
+            Document document = new Document(pdf);
+
+            for (String imageUrl : note.getImageUrls()) {
+                Image img = new Image(ImageDataFactory.create(new URL(imageUrl)));
+                // Scale image to fit page
+                img.setAutoScale(true);
+                document.add(img);
+            }
+
+            document.close();
+            byte[] pdfBytes = baos.toByteArray();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + note.getTitle().replaceAll("[^a-zA-Z0-9.-]", "_") + ".pdf\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/search")
+    public String search(@RequestParam(required = false) String studentName, 
+                         @RequestParam(required = false) String university,
+                         @RequestParam(required = false) String category, 
+                         HttpSession session, Model model) {
+        if (session.getAttribute("user") == null) return "redirect:/login";
+
+        List<Note> results = noteRepository.findAll();
+        // Simple filtering logic (same as before)
+        if (studentName != null && !studentName.trim().isEmpty()) {
+            results = results.stream().filter(n -> n.getUserName().toLowerCase().contains(studentName.toLowerCase())).toList();
+        }
+        if (university != null && !university.trim().isEmpty()) {
+            results = results.stream().filter(n -> n.getUniversity().toLowerCase().contains(university.toLowerCase())).toList();
+        }
+        if (category != null && !category.trim().isEmpty()) {
+            results = results.stream().filter(n -> n.getCategory().equals(category)).toList();
+        }
+
+        model.addAttribute("notes", results);
+        return "search";
     }
 
     @GetMapping("/delete/{id}")
@@ -108,7 +173,9 @@ public class NoteController {
         Note note = noteRepository.findById(id).filter(n -> n.getUserId().equals(user.getId())).orElse(null);
 
         if (note != null) {
-            cloudinaryService.deleteFile(note.getPublicId(), note.getResourceType());
+            for (String pid : note.getPublicIds()) {
+                cloudinaryService.deleteImage(pid);
+            }
             noteRepository.deleteById(id);
         }
         return "redirect:/dashboard";
