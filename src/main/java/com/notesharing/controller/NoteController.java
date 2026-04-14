@@ -151,16 +151,30 @@ public class NoteController {
                          HttpSession session, Model model) {
         if (session.getAttribute("user") == null) return "redirect:/login";
 
+        // Check if any search criteria is provided
+        boolean searchCriteriaProvided = (studentName != null && !studentName.trim().isEmpty()) ||
+                                         (university != null && !university.trim().isEmpty()) ||
+                                         (category != null && !category.trim().isEmpty());
+
+        if (!searchCriteriaProvided) {
+            model.addAttribute("notes", null);
+            return "search";
+        }
+
         List<Note> results = noteRepository.findAll();
-        // Simple filtering logic (same as before)
+        
+        // Filtering logic
         if (studentName != null && !studentName.trim().isEmpty()) {
             results = results.stream().filter(n -> n.getUserName().toLowerCase().contains(studentName.toLowerCase())).toList();
+            model.addAttribute("studentName", studentName);
         }
         if (university != null && !university.trim().isEmpty()) {
             results = results.stream().filter(n -> n.getUniversity().toLowerCase().contains(university.toLowerCase())).toList();
+            model.addAttribute("university", university);
         }
         if (category != null && !category.trim().isEmpty()) {
             results = results.stream().filter(n -> n.getCategory().equals(category)).toList();
+            model.addAttribute("selectedCategory", category);
         }
 
         model.addAttribute("notes", results);
