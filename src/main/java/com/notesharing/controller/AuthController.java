@@ -2,6 +2,8 @@ package com.notesharing.controller;
 
 import com.notesharing.model.User;
 import com.notesharing.repository.UserRepository;
+import com.notesharing.service.EmailService;
+import com.notesharing.service.OtpService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,6 +18,12 @@ import java.util.UUID;
 public class AuthController {
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private OtpService otpService;
 
     @GetMapping("/login")
     public String loginPage() {
@@ -32,6 +40,56 @@ public class AuthController {
         }
         model.addAttribute("error", "Invalid email or password");
         return "login";
+    }
+
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "forgot-password";
+    }
+
+    @PostMapping("/forgot-password")
+    public String processForgotPassword(@RequestParam String email, Model model) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            model.addAttribute("error", "Email not registered.");
+            return "forgot-password";
+        }
+
+        String otp = otpService.generateOtp(email);
+        try {
+            emailService.sendOtpEmail(email, otp);
+            model.addAttribute("success", "OTP sent to your email.");
+            model.addAttribute("email", email);
+            return "reset-password";
+        } catch (Exception e) {
+            model.addAttribute("error", "Failed to send email. Please try again.");
+            return "forgot-password";
+        }
+    }
+
+    @GetMapping("/reset-password")
+    public String resetPasswordPage(@RequestParam String email, Model model) {
+        model.addAttribute("email", email);
+        return "reset-password";
+    }
+
+    @PostMapping("/reset-password")
+    public String processResetPassword(@RequestParam String email, 
+                                       @RequestParam String otp, 
+                                       @RequestParam String newPassword, 
+                                       Model model) {
+        if (otpService.validateOtp(email, otp)) {
+            User user = userRepository.findByEmail(email).orElse(null);
+            if (user != null) {
+                user.setPassword(newPassword);
+                userRepository.save(user);
+                model.addAttribute("success", "Password reset successfully. Please login.");
+                return "login";
+            }
+        }
+        model.addAttribute("error", "Invalid or expired OTP.");
+        model.addAttribute("email", email);
+        return "reset-password";
     }
 
     @GetMapping("/register")
