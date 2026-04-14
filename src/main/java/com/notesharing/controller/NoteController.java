@@ -62,9 +62,10 @@ public class NoteController {
         String fileUrl = (String) uploadResult.get("secure_url");
         String publicId = (String) uploadResult.get("public_id");
         String resourceType = (String) uploadResult.get("resource_type");
+        String format = (String) uploadResult.get("format");
 
         Note note = new Note(UUID.randomUUID().toString(), title, description, fileUrl, 
-                             publicId, resourceType, user.getId(), user.getName(), category, user.getUniversity());
+                             publicId, resourceType, format, user.getId(), user.getName(), category, user.getUniversity());
         noteRepository.save(note);
         return "redirect:/dashboard";
     }
@@ -153,14 +154,14 @@ public class NoteController {
         Note note = noteRepository.findById(id).orElse(null);
         if (note == null) return "redirect:/search";
         
-        return "redirect:" + cloudinaryService.getDownloadUrl(note.getPublicId(), note.getResourceType());
+        return "redirect:" + cloudinaryService.getDownloadUrl(note.getPublicId(), note.getResourceType(), note.getFormat());
     }
 
     @GetMapping("/view/{id}")
     public String viewFile(@PathVariable String id) {
         Note note = noteRepository.findById(id).orElse(null);
         if (note == null) return "redirect:/search";
-        return "redirect:" + cloudinaryService.getViewUrl(note.getPublicId(), note.getResourceType());
+        return "redirect:" + cloudinaryService.getViewUrl(note.getPublicId(), note.getResourceType(), note.getFormat());
     }
 
     @GetMapping("/view-note/{id}")
@@ -172,10 +173,9 @@ public class NoteController {
         if (note == null) return "redirect:/search";
 
         model.addAttribute("note", note);
-        model.addAttribute("viewUrl", cloudinaryService.getViewUrl(note.getPublicId(), note.getResourceType()));
+        model.addAttribute("viewUrl", cloudinaryService.getViewUrl(note.getPublicId(), note.getResourceType(), note.getFormat()));
         
-        // Simple PDF detection based on resourceType or file extension
-        boolean isPdf = "raw".equals(note.getResourceType()) || 
+        boolean isPdf = "pdf".equalsIgnoreCase(note.getFormat()) || 
                        (note.getFilename() != null && note.getFilename().toLowerCase().contains(".pdf"));
                        
         model.addAttribute("isPdf", isPdf);

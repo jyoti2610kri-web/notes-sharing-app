@@ -13,10 +13,11 @@ public class Note {
     private String description;
     
     @Column(length = 2048)
-    private String filename; // Stores the URL
+    private String filename; // Stores the secure URL
     
-    private String publicId; // For Cloudinary
-    private String resourceType; // For Cloudinary
+    private String publicId;
+    private String resourceType;
+    private String format; // NEW: stores file extension (pdf, jpg, etc)
     
     private String userId;
     private String userName;
@@ -26,13 +27,14 @@ public class Note {
 
     public Note() {}
 
-    public Note(String id, String title, String description, String filename, String publicId, String resourceType, String userId, String userName, String category, String university) {
+    public Note(String id, String title, String description, String filename, String publicId, String resourceType, String format, String userId, String userName, String category, String university) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.filename = filename;
         this.publicId = publicId;
         this.resourceType = resourceType;
+        this.format = format;
         this.userId = userId;
         this.userName = userName;
         this.category = category;
@@ -52,6 +54,8 @@ public class Note {
     public void setPublicId(String publicId) { this.publicId = publicId; }
     public String getResourceType() { return resourceType; }
     public void setResourceType(String resourceType) { this.resourceType = resourceType; }
+    public String getFormat() { return format; }
+    public void setFormat(String format) { this.format = format; }
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
     public String getUserName() { return userName; }

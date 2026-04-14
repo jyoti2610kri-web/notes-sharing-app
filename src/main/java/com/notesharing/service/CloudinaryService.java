@@ -16,14 +16,12 @@ public class CloudinaryService {
     private final Cloudinary cloudinary;
 
     public CloudinaryService(@Value("${cloudinary.url}") String cloudinaryUrl) {
-        // Clean the URL in case there are any < > or spaces
         String cleanUrl = cloudinaryUrl.replace("<", "").replace(">", "").trim();
         this.cloudinary = new Cloudinary(cleanUrl);
     }
 
     public Map uploadFile(MultipartFile file) {
         try {
-            // Upload as 'auto' which handles images/raw (PDFs) appropriately
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
                     "resource_type", "auto",
                     "access_mode", "public"
@@ -34,26 +32,24 @@ public class CloudinaryService {
         }
     }
 
-    public String getDownloadUrl(String publicId, String resourceType) {
+    public String getDownloadUrl(String publicId, String resourceType, String format) {
         if (publicId == null || publicId.isEmpty()) return "";
         
-        // Use the secure URL and add attachment flag
-        // For 'raw' files, transformations like flags=attachment only work if accessed via the /upload/ URL
-        // A better way is to use the secure_url directly if possible, but Cloudinary's generate() is good.
         return cloudinary.url()
                 .resourceType(resourceType != null ? resourceType : "auto")
                 .secure(true)
+                .format(format != null ? format : "")
                 .transformation(new Transformation().flags("attachment"))
                 .generate(publicId);
     }
 
-    public String getViewUrl(String publicId, String resourceType) {
+    public String getViewUrl(String publicId, String resourceType, String format) {
         if (publicId == null || publicId.isEmpty()) return "";
         
-        // For 'raw' files (PDFs), we MUST not use transformations if we want them to open in a viewer
         return cloudinary.url()
                 .resourceType(resourceType != null ? resourceType : "auto")
                 .secure(true)
+                .format(format != null ? format : "")
                 .generate(publicId);
     }
     
