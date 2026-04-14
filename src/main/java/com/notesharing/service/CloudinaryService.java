@@ -16,7 +16,9 @@ public class CloudinaryService {
     private final Cloudinary cloudinary;
 
     public CloudinaryService(@Value("${cloudinary.url}") String cloudinaryUrl) {
-        this.cloudinary = new Cloudinary(cloudinaryUrl);
+        // Clean the URL in case there are any < > or spaces
+        String cleanUrl = cloudinaryUrl.replace("<", "").replace(">", "").trim();
+        this.cloudinary = new Cloudinary(cleanUrl);
     }
 
     public Map uploadFile(MultipartFile file) {
@@ -28,16 +30,19 @@ public class CloudinaryService {
             ));
             return uploadResult;
         } catch (IOException e) {
-            throw new RuntimeException("Cloudinary upload failed", e);
+            throw new RuntimeException("Cloudinary upload failed: " + e.getMessage(), e);
         }
     }
 
     public String getDownloadUrl(String publicId, String resourceType) {
         if (publicId == null || publicId.isEmpty()) return "";
         
-        // For downloads, we apply the attachment flag
+        // Use the secure URL and add attachment flag
+        // For 'raw' files, transformations like flags=attachment only work if accessed via the /upload/ URL
+        // A better way is to use the secure_url directly if possible, but Cloudinary's generate() is good.
         return cloudinary.url()
-                .resourceType(resourceType != null ? resourceType : "image")
+                .resourceType(resourceType != null ? resourceType : "auto")
+                .secure(true)
                 .transformation(new Transformation().flags("attachment"))
                 .generate(publicId);
     }
@@ -45,9 +50,10 @@ public class CloudinaryService {
     public String getViewUrl(String publicId, String resourceType) {
         if (publicId == null || publicId.isEmpty()) return "";
         
-        // If it's a raw file (PDF), we need to ensure the URL is clean for the browser to open
+        // For 'raw' files (PDFs), we MUST not use transformations if we want them to open in a viewer
         return cloudinary.url()
-                .resourceType(resourceType != null ? resourceType : "image")
+                .resourceType(resourceType != null ? resourceType : "auto")
+                .secure(true)
                 .generate(publicId);
     }
     
